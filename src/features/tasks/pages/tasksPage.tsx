@@ -4,7 +4,12 @@ import { Button } from "../../../components/common/Button"
 import { useState } from "react";
 import TaskModal from "../../../components/modals/TaskModal";
 import { Task } from "../types/task";
-
+import { SortableContext } from "@dnd-kit/sortable";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import TaskColumn from "../components/TaskColumn";
+import { updateTaskStatus } from "../api/updateTaskStatus";
+import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
+import type { TaskStatus } from "../types/task";
 
 const TaskPage = () => {
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -16,13 +21,27 @@ const TaskPage = () => {
         error
     } = useAllTasks()
 
+    const { mutate: updateTaskStatus } = useUpdateTaskStatus();
+
     const groupedTasks = {
         NOT_STARTED: tasks?.filter(task => task.status == "NOT_STARTED") || [],
         IN_PROGRESS: tasks?.filter(task => task.status == "IN_PROGRESS") || [],
         COMPLETED: tasks?.filter(task => task.status == "COMPLETED") || []
     }
 
+    const handleDragEnd = (event: DragEndEvent) => {
+        const taskId = String(event.active.id);
+        const newStatus = event.over?.id;
 
+        if (!newStatus) {
+            return;
+    }
+
+  updateTaskStatus({
+    id: taskId,
+    status: newStatus as TaskStatus,
+  });
+};
 
 
     if(isLoading){
@@ -34,6 +53,10 @@ const TaskPage = () => {
     }
 
     return (
+      <DndContext  
+        onDragStart={() => console.log("DRAG STARTED")}
+        onDragEnd={handleDragEnd}
+    >
     <div className={`bg-red-500`}>
     <div className="flex items-start justify-between">
         <h1>My Tasks</h1>
@@ -49,9 +72,10 @@ const TaskPage = () => {
 
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
       {/* NOT STARTED */}
-    <div className="rounded-lg bg-gray-100 p-4">
+    <TaskColumn id="NOT_STARTED">
+    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
         <h2>Not Started</h2>
-
+        <SortableContext items={groupedTasks.NOT_STARTED.map(task => task.id)}>
         {groupedTasks.NOT_STARTED.map(task => (
             <TaskCard
                 key={task.id}
@@ -62,13 +86,15 @@ const TaskPage = () => {
                 }}
             />
         ))}
+        </SortableContext>
     </div>
-
+    </TaskColumn>
 
     {/* IN PROGRESS */}
-    <div className="rounded-lg bg-gray-100 p-4">
+    <TaskColumn id="IN_PROGRESS">
+    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
         <h2>In Progress</h2>
-
+        <SortableContext items={groupedTasks.IN_PROGRESS.map(task => task.id)}>
         {groupedTasks.IN_PROGRESS.map(task => (
             <TaskCard
                 key={task.id}
@@ -79,13 +105,15 @@ const TaskPage = () => {
                 }}
             />
         ))}
+        </SortableContext>
     </div>
-
+    </TaskColumn>
 
     {/* COMPLETED */}
-    <div className="rounded-lg bg-gray-100 p-4">
+    <TaskColumn id="COMPLETED">
+    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
         <h2>Completed</h2>
-
+        <SortableContext items={groupedTasks.COMPLETED.map(task => task.id)}>
         {groupedTasks.COMPLETED.map(task => (
             <TaskCard
                 key={task.id}
@@ -96,7 +124,9 @@ const TaskPage = () => {
                 }}
             />
         ))}
+        </SortableContext>
     </div>
+    </TaskColumn>
     </div>
 
     {showTaskModal && (
@@ -106,6 +136,7 @@ const TaskPage = () => {
         />
         )}
     </div>
+    </DndContext>
     )
 }
 

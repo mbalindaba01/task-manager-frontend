@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import RegisterPage from "./features/auth/pages/registerPage";
 import LoginPage from "./features/auth/pages/loginPage";
 import TaskPage from "./features/tasks/pages/tasksPage";
-import ProtectedRoute from "./components/common/protectedRoute";
+import ProtectedRoute from "./components/common/ProtectedRoute";
 
 const isAuthenticated = () => {
   return Boolean(

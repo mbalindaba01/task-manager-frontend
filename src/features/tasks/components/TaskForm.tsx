@@ -16,6 +16,9 @@ export default function TaskForm({ onClose, task }: TaskFormProps) {
   const [status, setStatus] = useState<TaskStatus>(
     task?.status ?? "NOT_STARTED"
   );
+  const [dueDate, setDueDate] = useState(
+    task?.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
+  );
 
   const { mutate: createTask } = useCreateTask();
   const { mutate: updateTask } = useUpdateTask();
@@ -24,7 +27,8 @@ export default function TaskForm({ onClose, task }: TaskFormProps) {
     setTitle("");
     setDescription("");
     setStatus("NOT_STARTED");
-    setPriority("MEDIUM")
+    setPriority("MEDIUM");
+    setDueDate("");
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -34,7 +38,8 @@ export default function TaskForm({ onClose, task }: TaskFormProps) {
       title,
       description,
       status,
-      priority
+      priority,
+      dueDate: dueDate || null
     };
 
    
@@ -67,7 +72,7 @@ export default function TaskForm({ onClose, task }: TaskFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 rounded-xl border bg-white p-6 shadow-sm"
+      className="space-y-4 rounded-xl border border-[#1d4b6b] bg-[#0d2431] p-6 shadow-lg shadow-[#010F13]/50"
     >
       <div className="space-y-2">
         <label htmlFor="title" className="font-medium">
@@ -114,6 +119,20 @@ export default function TaskForm({ onClose, task }: TaskFormProps) {
           <option value="MEDIUM">MEDIUM</option>
           <option value="HIGH">HIGH</option>
         </select>
+      </div>
+
+      <div className="space-y-2">
+        <label htmlFor="dueDate" className="font-medium">
+          Due Date
+        </label>
+
+        <input
+          id="dueDate"
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full rounded-md border p-2"
+        />
       </div>
 
       <Button type="submit">

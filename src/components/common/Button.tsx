@@ -23,11 +23,11 @@ export const Button: React.FC<ButtonProps> = ({
 
   // Variant styling
   const variantClasses = {
-    primary: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-blue-500 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800',
-    ghost: 'text-gray-700 hover:bg-gray-100 focus:ring-gray-500 dark:text-gray-200 dark:hover:bg-gray-800',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+    primary: 'bg-[#64D4FF] text-[#010F13] shadow-lg shadow-[#64D4FF]/20 hover:bg-[#54c7ff] focus:ring-2 focus:ring-[#64D4FF]/60',
+    secondary: 'bg-[#14303D] text-[#E6F1F5] hover:bg-[#1F4354] focus:ring-[#64D4FF]/40',
+    outline: 'border border-[#3F5E70] text-[#E6F1F5] hover:bg-[#102027] focus:ring-[#64D4FF]/40',
+    ghost: 'text-[#E6F1F5] hover:bg-[#102027] focus:ring-[#64D4FF]/40',
+    danger: 'bg-[#ff6b6b] text-[#010F13] hover:bg-[#f45555] focus:ring-[#ff6b6b]/40',
   };
 
   // Size styling

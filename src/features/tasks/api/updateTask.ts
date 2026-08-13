@@ -7,20 +7,33 @@ interface UpdateTaskData {
   description: string;
   status: TaskStatus;
   priority: Priority
+  dueDate: string | null
 }
 
 export const updateTask = async ({
   id,
   title,
   description,
-  status,
-  priority
+  priority,
+  dueDate
 }: UpdateTaskData): Promise<Task> => {
+
+  console.log("SENDING UPDATE:", {
+    id,
+    title,
+    description,
+    priority,
+    dueDate,
+  });
+
   const response = await api.put(`/tasks/${id}`, {
     title,
     description,
-    priority
+    priority,
+    dueDate
   });
+
+  console.log("UPDATE RESPONSE:", response.data);
 
   return response.data;
 };

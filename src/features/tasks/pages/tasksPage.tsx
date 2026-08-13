@@ -2,18 +2,36 @@ import { useAllTasks } from "../hooks/useGetAllTasks";
 import TaskCard from "../components/TaskCard";
 import { Button } from "../../../components/common/Button"
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TaskModal from "../../../components/modals/TaskModal";
 import { Task } from "../types/task";
 import { SortableContext } from "@dnd-kit/sortable";
-import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, DragStartEvent,  type DragEndEvent, type CollisionDetection, pointerWithin } from "@dnd-kit/core";
 import TaskColumn from "../components/TaskColumn";
-import { updateTaskStatus } from "../api/updateTaskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import type { TaskStatus } from "../types/task";
 
+const collisionDetectionStrategy: CollisionDetection = ({
+  droppableContainers,
+  ...args
+}) => {
+  const columns = droppableContainers.filter((container) =>
+    ["NOT_STARTED", "IN_PROGRESS", "COMPLETED"].includes(
+      String(container.id)
+    )
+  );
+
+  return pointerWithin({
+    ...args,
+    droppableContainers: columns,
+  });
+};
+
 const TaskPage = () => {
+    const navigate = useNavigate();
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [showTaskModal, setShowTaskModal] = useState(false);
+    const [activeTask, setActiveTask] = useState<Task | null>(null);
     const {
         data: tasks, 
         isLoading, 
@@ -22,6 +40,20 @@ const TaskPage = () => {
     } = useAllTasks()
 
     const { mutate: updateTaskStatus } = useUpdateTaskStatus();
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+        navigate("/login");
+    };
+
+    const handleDragStart = (event: DragStartEvent) => {
+  const task = tasks?.find(
+    (task) => task.id === String(event.active.id)
+  );
+
+  setActiveTask(task ?? null);
+};
 
     const groupedTasks = {
         NOT_STARTED: tasks?.filter(task => task.status == "NOT_STARTED") || [],
@@ -33,15 +65,17 @@ const TaskPage = () => {
         const taskId = String(event.active.id);
         const newStatus = event.over?.id;
 
+        setActiveTask(null);
+
         if (!newStatus) {
             return;
-    }
+        }
 
-  updateTaskStatus({
-    id: taskId,
-    status: newStatus as TaskStatus,
-  });
-};
+        updateTaskStatus({
+            id: taskId,
+            status: newStatus as TaskStatus,
+        });
+     };
 
 
     if(isLoading){
@@ -54,27 +88,38 @@ const TaskPage = () => {
 
     return (
       <DndContext  
-        onDragStart={() => console.log("DRAG STARTED")}
+        collisionDetection={collisionDetectionStrategy}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
     >
-    <div className={`bg-red-500`}>
-    <div className="flex items-start justify-between">
-        <h1>My Tasks</h1>
-        <Button
+    <div className="space-y-6 px-4 py-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="">
+          <h1 className="text-3xl font-semibold text-[#f8fcff]">Your <span>WorkFlow</span></h1>
+          <p className="text-sm text-[#a8c7d7] text-left">Let's get ahead of this week</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 justify-end">
+          <Button
             onClick={() => {
                 setSelectedTask(null);
                 setShowTaskModal(true);
             }}
-        >
-            Add Task
-        </Button>
-    </div>
-
-    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          >
+              Add Task
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="border-[#64D4FF] text-[#d8e9f2] hover:bg-[#0f293c]"
+          >
+            Logout
+          </Button>
+        </div>
+      </div>
+    <div className="grid items-start gap-5 md:grid-cols-2 lg:grid-cols-3">
       {/* NOT STARTED */}
-    <TaskColumn id="NOT_STARTED">
-    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
-        <h2>Not Started</h2>
+    <TaskColumn id="NOT_STARTED" title="Not Started">
         <SortableContext items={groupedTasks.NOT_STARTED.map(task => task.id)}>
         {groupedTasks.NOT_STARTED.map(task => (
             <TaskCard
@@ -87,13 +132,10 @@ const TaskPage = () => {
             />
         ))}
         </SortableContext>
-    </div>
     </TaskColumn>
 
     {/* IN PROGRESS */}
-    <TaskColumn id="IN_PROGRESS">
-    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
-        <h2>In Progress</h2>
+    <TaskColumn id="IN_PROGRESS" title="In Progress">
         <SortableContext items={groupedTasks.IN_PROGRESS.map(task => task.id)}>
         {groupedTasks.IN_PROGRESS.map(task => (
             <TaskCard
@@ -106,13 +148,10 @@ const TaskPage = () => {
             />
         ))}
         </SortableContext>
-    </div>
     </TaskColumn>
 
     {/* COMPLETED */}
-    <TaskColumn id="COMPLETED">
-    <div className="rounded-lg bg-gray-100 p-4 overflow-visible">
-        <h2>Completed</h2>
+    <TaskColumn id="COMPLETED" title="Completed">
         <SortableContext items={groupedTasks.COMPLETED.map(task => task.id)}>
         {groupedTasks.COMPLETED.map(task => (
             <TaskCard
@@ -125,7 +164,6 @@ const TaskPage = () => {
             />
         ))}
         </SortableContext>
-    </div>
     </TaskColumn>
     </div>
 
@@ -136,6 +174,14 @@ const TaskPage = () => {
         />
         )}
     </div>
+    <DragOverlay>
+  {activeTask ? (
+    <TaskCard
+      task={activeTask}
+      onEdit={() => {}}
+    />
+  ) : null}
+</DragOverlay>
     </DndContext>
     )
 }

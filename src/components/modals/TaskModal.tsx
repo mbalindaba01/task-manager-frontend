@@ -16,7 +16,7 @@ export default function TaskModal({ task, onClose }: TaskModalProps) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="rounded-xl bg-white p-6"
+        className="rounded-xl bg-[#0d2330] border border-[#1d4b6b] p-6 shadow-lg shadow-[#010F13]/50"
       >
         <TaskForm 
         task={task}

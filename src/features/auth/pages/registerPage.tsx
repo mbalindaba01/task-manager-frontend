@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useRegister } from "../hooks/useRegister";
 import axios from 'axios';
 import { Link } from "react-router-dom";
+import "../../../styles/auth.css";
 
 const RegisterPage = () => {
 
     const { mutate, isPending } = useRegister();
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
     const [formData, setFormData] = useState({
         username: "",
@@ -16,6 +19,8 @@ const RegisterPage = () => {
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
+        setError("");
+        setSuccess("");
 
         setFormData({
             ...formData,
@@ -29,10 +34,13 @@ const RegisterPage = () => {
     ) => {
 
         e.preventDefault();
+        setError("");
+        setSuccess("");
 
         mutate(formData, {
             onSuccess: (data) => {
                 localStorage.setItem("token", data.token)
+                setSuccess("Registration successful! Redirecting...");
                 setFormData({
                     username: "",
                     email: "",
@@ -41,52 +49,92 @@ const RegisterPage = () => {
             },
             onError: (error) => {
                 if (axios.isAxiosError(error)) {
-                console.log(error.response?.data.message);
-    }
+                    const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+                    setError(errorMessage);
+                    console.log(errorMessage);
+                }
             }
         });
 
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h1>Register</h1>
-            <input
-                name="username"
-                placeholder="Username"
-                value={formData.username}
-                onChange={handleChange}
-            />
+        <div className="auth-container">
+            <div className="auth-wrapper">
+                <form className="auth-form" onSubmit={handleSubmit}>
+                    <div className="auth-header">
+                        <h1>Create Account</h1>
+                        <p>Join us to manage your tasks efficiently</p>
+                    </div>
 
-            <input
-                name="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={handleChange}
-            />
+                    {error && (
+                        <div className="auth-error show">
+                            {error}
+                        </div>
+                    )}
 
-            <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-            />
+                    {success && (
+                        <div className="auth-success show">
+                            {success}
+                        </div>
+                    )}
 
-            <button
-                type="submit"
-                disabled={isPending}
-            >
-                Register
-            </button>
-            <p>Already have an account?{" "}</p>
-            <Link
-            to="/login"
-            >
-            Login here
-            </Link>
+                    <div className="auth-form-group">
+                        <label htmlFor="username">Username</label>
+                        <input
+                            id="username"
+                            type="text"
+                            name="username"
+                            placeholder="Choose a username"
+                            value={formData.username}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
 
-        </form>
+                    <div className="auth-form-group">
+                        <label htmlFor="email">Email Address</label>
+                        <input
+                            id="email"
+                            type="email"
+                            name="email"
+                            placeholder="you@example.com"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <div className="auth-form-group">
+                        <label htmlFor="password">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            placeholder="Create a strong password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            required
+                        />
+                    </div>
+
+                    <button
+                        className="auth-submit-btn"
+                        type="submit"
+                        disabled={isPending}
+                    >
+                        {isPending ? "Creating Account..." : "Register"}
+                    </button>
+
+                    <div className="auth-link-group">
+                        <span className="auth-link-text">Already have an account?</span>
+                        <Link className="auth-link" to="/login">
+                            Login here
+                        </Link>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 
 };

@@ -5,6 +5,7 @@ import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import ConfirmDeleteModal from "../../../components/modals/ConfirmDeleteModal";
 import { useDeleteTask } from "../hooks/useDeleteTask";
 import { useSortable } from "@dnd-kit/sortable";
+import { Calendar } from "lucide-react";
 
 interface TaskCardProps {
   task: Task;
@@ -16,6 +17,7 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
   const { mutate: deleteTask, isPending } = useDeleteTask();
 
   const [expanded, setExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [status, setStatus] = useState(task.status);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -40,17 +42,25 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const handleDelete = () => {
     deleteTask(task.id, {
-      onSuccess: () => {
-        setShowDeleteModal(false);
-      },
+        onSuccess: () => {
+            setShowDeleteModal(false);
+        },
+        onError: (error) => {
+            console.error("DELETE FAILED", error);
+        },
     });
-  };
+};
 
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setExpanded(false);
+      }}
       style={{
         touchAction: "none",
         userSelect: "none",
@@ -59,63 +69,56 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
           : undefined,
         transition,
       }}
-      className="relative mb-4 rounded-lg bg-white p-4 shadow"
+      className={`relative rounded-lg bg-[#040B11] border border-[#18415a] p-4 shadow-lg shadow-[#040B11]/20 h-50 ${isHovered ? "-translate-y-1" : ""}`}
     >
-      {/* Title + expand button */}
-      <div className="relative flex items-start justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">
+      {/* Title + menu button */}
+      <div className="relative flex items-start justify-between h-1/3">
+        <h4 className="pb-2 text-md capitalize font-semibold text-[#f8fcff] text-left">
           {task.title}
-        </h2>
+        </h4>
 
         <div className="absolute top-0 right-0">
-          <Button
-            onClick={() => setExpanded(!expanded)}
-            variant="primary"
-          >
-            {expanded ? "X" : "..."}
-          </Button>
+          {isHovered && (
+            <Button
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => setExpanded(!expanded)}
+              variant="primary"
+              className="!px-2 border rounded !text-base !bg-transparent !border-none !hover:bg-transparent text-white !outline-none !focus:outline-none !focus-visible:outline-none !focus:ring-0"
+              title="Menu"
+            >
+              {expanded ? "x" : "⋮"}
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Description */}
-      <div className="relative">
-        <p className="text-left">
+      <div className="relative h-2/3">
+        <p className="text-left text-sm h-2/3">
           {task.description}
         </p>
 
         {/* Status + Priority */}
-        <div className="relative flex items-center justify-between">
-          <select
-            value={status}
-            onChange={handleTaskChange}
-            className={`mt-2 block px-3 py-1 text-xs font-medium ${
-              status === "COMPLETED"
-                ? "bg-green-100 text-green-700"
-                : status === "IN_PROGRESS"
-                ? "bg-yellow-100 text-yellow-700"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            <option value="NOT_STARTED">
-              Not Started
-            </option>
-
-            <option value="IN_PROGRESS">
-              In Progress
-            </option>
-
-            <option value="COMPLETED">
-              Completed
-            </option>
-          </select>
+        <div className="flex items-end justify-between w-full">
+        <div className="flex items-center gap-2 py-2">
+          <Calendar className="h-4 w-4" />
+          <span className="text-xs">
+            {task.dueDate
+              ? new Intl.DateTimeFormat("en-US", {
+              month: "short",
+              day: "numeric",
+            }).format(new Date(task.dueDate))
+              : "No Due Date"}
+          </span>
+      </div>
 
           <p
-            className={`${
+            className={`text-sm lowercase rounded px-3 py-1 ${
               task.priority === "LOW"
-                ? "bg-green-100 text-green-700"
+                ? "bg-green-500/10 text-green-800"
                 : task.priority === "MEDIUM"
-                ? "bg-orange-100 text-yellow-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-orange-500/10 text-yellow-800"
+                : "bg-red-500/10 text-red-800"
             }`}
           >
             {task.priority}
@@ -124,21 +127,31 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
 
         {/* Edit/Delete menu */}
         {expanded && (
-          <div className="absolute right-0 top-5 flex w-4xs flex-col bg-blue-200">
+          <div className="absolute right-0 top-3 flex w-4xs flex-col border border-[#040B11] bg-[#102438] shadow-lg shadow-[#000000]/20 z-50">
             <Button
-              onClick={onEdit}
-              variant="primary"
-              className="border-none"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                  setExpanded(false)
+                  onEdit()
+              }
+              }
+              variant="ghost"
+              className="border-none justify-start gap-2"
             >
-              Edit
+              <span>Edit</span>
             </Button>
 
             <Button
-              onClick={() => setShowDeleteModal(true)}
-              variant="primary"
-              className="border-none"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={() => {
+                setExpanded(false)
+                setShowDeleteModal(true)
+                }
+              }
+              variant="danger"
+              className=""
             >
-              Delete
+              <span>Delete</span>
             </Button>
           </div>
         )}

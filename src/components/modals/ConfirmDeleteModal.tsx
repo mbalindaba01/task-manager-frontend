@@ -14,10 +14,11 @@ export default function ConfirmDeleteModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl"
+        className="w-full max-w-sm rounded-xl bg-[#0d2330] border border-[#1d4b6b] p-6 shadow-xl shadow-[#010F13]/50"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-semibold">

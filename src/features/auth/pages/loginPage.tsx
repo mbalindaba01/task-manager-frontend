@@ -30,6 +30,9 @@ const LoginPage = () => {
         e.preventDefault()
         setError("");
 
+        localStorage.removeItem("token");
+        sessionStorage.removeItem("token");
+
         mutate(formData, {
             onSuccess: (data) => {
                 localStorage.setItem("token", data.token)

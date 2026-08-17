@@ -55,6 +55,10 @@ const TaskPage = () => {
   setActiveTask(task ?? null);
 };
 
+    const handleDragCancel = () => {
+      setActiveTask(null);
+    };
+
     const groupedTasks = {
         NOT_STARTED: tasks?.filter(task => task.status == "NOT_STARTED") || [],
         IN_PROGRESS: tasks?.filter(task => task.status == "IN_PROGRESS") || [],
@@ -91,6 +95,7 @@ const TaskPage = () => {
         collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
     >
     <div className="space-y-6 px-4 py-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -174,7 +179,7 @@ const TaskPage = () => {
         />
         )}
     </div>
-    <DragOverlay>
+    <DragOverlay dropAnimation={null}>
   {activeTask ? (
     <TaskCard
       task={activeTask}

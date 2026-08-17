@@ -14,7 +14,27 @@ export function useUpdateTaskStatus() {
       status: TaskStatus;
     }) => updateTaskStatus(id, status),
 
-    onSuccess: () => {
+    onMutate: async ({ id, status }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks"]);
+
+      queryClient.setQueryData<Task[]>(["tasks"], (oldTasks = []) =>
+        oldTasks.map((task) =>
+          task.id === id ? { ...task, status } : task
+        )
+      );
+
+      return { previousTasks };
+    },
+
+    onError: (_error, _variables, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(["tasks"], context.previousTasks);
+      }
+    },
+
+    onSettled: () => {
       queryClient.invalidateQueries({
         queryKey: ["tasks"],
       });

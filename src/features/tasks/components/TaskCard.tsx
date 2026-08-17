@@ -27,6 +27,7 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
     setNodeRef,
     transform,
     transition,
+    isDragging,
   } = useSortable({
     id: task.id,
   });
@@ -64,12 +65,17 @@ export default function TaskCard({ task, onEdit }: TaskCardProps) {
       style={{
         touchAction: "none",
         userSelect: "none",
-        transform: transform
-          ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-          : undefined,
-        transition,
+        opacity: isDragging ? 0 : 1,
+        visibility: isDragging ? "hidden" : "visible",
+        transform: isDragging
+          ? "translate3d(0, 0, 0)"
+          : transform
+            ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+            : undefined,
+        transition: isDragging ? "none" : transition,
+        boxShadow: isDragging ? "0 20px 30px rgba(0,0,0,0.35)" : undefined,
       }}
-      className={`relative rounded-lg bg-[#040B11] border border-[#18415a] p-4 shadow-lg shadow-[#040B11]/20 h-50 ${isHovered ? "-translate-y-1" : ""}`}
+      className={`relative rounded-lg bg-[#040B11] border border-[#18415a] p-4 shadow-lg shadow-[#040B11]/20 h-50 ${isHovered ? "-translate-y-1" : ""} ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
     >
       {/* Title + menu button */}
       <div className="relative flex items-start justify-between h-1/3">
